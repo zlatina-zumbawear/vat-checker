@@ -41,7 +41,7 @@ async function fetchWithRetry(country, number) {
 
     for (let i = 0; i < proxies.length; i++) {
         try {
-            // Reverted to your preferred message style
+            // Update UI text to show progress
             if (btnText) btnText.innerText = `Syncing with VIES (attempt ${i + 1})...`;
             
             const response = await fetchWithTimeout(proxies[i](apiUrl), { method: 'GET' }, 30000);
@@ -96,6 +96,7 @@ checkBtn.addEventListener('click', async () => {
                 resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>${data.name || 'Company Name Restricted'}<br>${data.address || ''}`;
             } else {
                 resultDiv.className = 'invalid';
+                // Use translated error if available, otherwise fallback to the raw error or default text
                 const displayError = data.friendlyError || data.userError || 'Number not found in EU database.';
                 resultDiv.innerHTML = `<strong>✗ ATTENTION</strong><br>${displayError}`;
             }
