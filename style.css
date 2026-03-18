@@ -1,45 +1,62 @@
 body { 
     font-family: 'Inter', -apple-system, sans-serif; 
-    background-color: #f8fafc; 
-    padding: 40px 20px; 
-    color: #1e293b; 
     margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Full-Screen Background Wrapper using your Imgur Link */
+.full-screen-bg {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('https://i.imgur.com/xp9xcrK.jpeg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .container { 
-    max-width: 480px; 
-    background: white; 
-    padding: 30px; 
-    margin: 20px auto; 
-    border-radius: 12px; 
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); 
-    border-top: 6px solid #eb0096; /* Zumba Pink Border */
+    width: 90%;
+    max-width: 440px; 
+    background: rgba(255, 255, 255, 0.92); 
+    backdrop-filter: blur(10px); /* Modern glass effect */
+    padding: 35px; 
+    border-radius: 16px; 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+    border-top: 6px solid #eb0096; 
+    position: relative;
+    z-index: 10;
 }
 
-h2 { color: #eb0096; text-align: center; margin-bottom: 25px; font-size: 1.5rem; }
+h2 { color: #eb0096; text-align: center; margin-bottom: 25px; font-size: 1.5rem; font-weight: 800; }
 
 .form-group { margin-bottom: 20px; text-align: left; }
 
 label { 
     display: block; 
     margin-bottom: 8px; 
-    font-weight: 600; 
-    font-size: 12px; 
+    font-weight: 700; 
+    font-size: 11px; 
     text-transform: uppercase; 
-    letter-spacing: 0.5px; 
+    letter-spacing: 1px; 
     color: #64748b; 
 }
 
 /* Editable textboxes color set to Deep Purple */
 input, .modern-select { 
     width: 100%; 
-    padding: 12px 16px; 
+    padding: 14px 16px; 
     border: 1px solid #e2e8f0; 
     border-radius: 8px; 
     font-size: 16px; 
     box-sizing: border-box; 
     display: block;
     color: #481687; 
+    background-color: white;
 }
 
 .modern-select {
@@ -48,19 +65,19 @@ input, .modern-select {
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 16px;
-    background-color: #fff;
 }
 
-input:focus, .modern-select:focus { border-color: #eb0096; outline: none; }
+input:focus, .modern-select:focus { border-color: #eb0096; outline: none; box-shadow: 0 0 0 3px rgba(235, 0, 150, 0.1); }
 
 hr { border: 0; border-top: 1px solid #f1f5f9; margin: 25px 0; }
 
 .readonly-flex { 
-    background: #f1f5f9; 
-    padding: 12px; 
+    background: #f8fafc; 
+    padding: 14px; 
     border-radius: 8px; 
     color: #475569; 
     font-weight: 700; 
+    border: 1px dashed #cbd5e1;
 }
 
 button { 
@@ -70,16 +87,19 @@ button {
     gap: 10px;
     width: 100%; 
     padding: 16px; 
-    background: #eb0096; /* Zumba Pink Button */
+    background: #eb0096; 
     color: white; 
     border: none; 
     border-radius: 8px; 
     font-size: 16px; 
-    font-weight: 700; 
+    font-weight: 800; 
     cursor: pointer; 
+    transition: transform 0.1s, background 0.2s;
+    text-transform: uppercase;
 }
 
-button:hover { background: #c2007d; }
+button:hover { background: #c2007d; transform: translateY(-1px); }
+button:active { transform: translateY(0); }
 button:disabled { background: #f09bc7; cursor: not-allowed; }
 
 .spinner {
@@ -92,6 +112,6 @@ button:disabled { background: #f09bc7; cursor: not-allowed; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-#result { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; line-height: 1.5; font-weight: 500;}
+#result { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; line-height: 1.5; font-weight: 600;}
 .valid { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
 .invalid { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
