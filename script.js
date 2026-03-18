@@ -6,6 +6,7 @@ const resultDiv = document.getElementById('result');
 const REQ_COUNTRY = "BG";
 const REQ_NUMBER = "206792586";
 
+// Error Translation Dictionary
 const VIES_ERRORS = {
     'MS_MAX_CONCURRENT_REQ': 'The country database is currently overloaded. Please wait 10 seconds and try again.',
     'MS_UNAVAILABLE': 'The selected country database is temporarily offline for maintenance.',
@@ -40,8 +41,8 @@ async function fetchWithRetry(country, number) {
 
     for (let i = 0; i < proxies.length; i++) {
         try {
-            // Update UI text to show progress
-            if (btnText) btnText.innerText = `Syncing (Bridge ${i + 1})...`;
+            // Reverted to your preferred message style
+            if (btnText) btnText.innerText = `Syncing with VIES (attempt ${i + 1})...`;
             
             const response = await fetchWithTimeout(proxies[i](apiUrl), { method: 'GET' }, 30000);
             
@@ -50,6 +51,7 @@ async function fetchWithRetry(country, number) {
             const resData = await response.json();
             const data = resData.contents ? JSON.parse(resData.contents) : resData;
             
+            // If the API returns a technical error string instead of a valid/invalid status
             if (data.userError && VIES_ERRORS[data.userError]) {
                 data.friendlyError = VIES_ERRORS[data.userError];
             }
@@ -70,6 +72,7 @@ checkBtn.addEventListener('click', async () => {
     
     const cleanNumber = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
     
+    // VALIDATION: VAT numbers are typically between 8 and 12 digits.
     if (!cleanNumber || cleanNumber.length < 8) {
         if (resultDiv) {
             resultDiv.style.display = 'block';
@@ -79,6 +82,7 @@ checkBtn.addEventListener('click', async () => {
         return;
     }
 
+    // UI State
     checkBtn.disabled = true;
     if (loader) loader.style.display = 'block';
     if (resultDiv) resultDiv.style.display = 'none';
