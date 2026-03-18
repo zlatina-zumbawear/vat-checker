@@ -13,10 +13,10 @@ body {
     margin: 20px auto; 
     border-radius: 12px; 
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); 
-    border-top: 6px solid #004494; 
+    border-top: 6px solid #eb0096; /* Zumba Pink Border */
 }
 
-h2 { color: #004494; text-align: center; margin-bottom: 25px; font-size: 1.5rem; }
+h2 { color: #eb0096; text-align: center; margin-bottom: 25px; font-size: 1.5rem; }
 
 .form-group { margin-bottom: 20px; text-align: left; }
 
@@ -30,6 +30,7 @@ label {
     color: #64748b; 
 }
 
+/* Editable textboxes color set to Deep Purple */
 input, .modern-select { 
     width: 100%; 
     padding: 12px 16px; 
@@ -38,6 +39,7 @@ input, .modern-select {
     font-size: 16px; 
     box-sizing: border-box; 
     display: block;
+    color: #481687; 
 }
 
 .modern-select {
@@ -49,13 +51,11 @@ input, .modern-select {
     background-color: #fff;
 }
 
-input:focus, .modern-select:focus { border-color: #004494; outline: none; }
+input:focus, .modern-select:focus { border-color: #eb0096; outline: none; }
 
 hr { border: 0; border-top: 1px solid #f1f5f9; margin: 25px 0; }
 
 .readonly-flex { 
-    display: flex; 
-    gap: 10px; 
     background: #f1f5f9; 
     padding: 12px; 
     border-radius: 8px; 
@@ -70,7 +70,7 @@ button {
     gap: 10px;
     width: 100%; 
     padding: 16px; 
-    background: #004494; 
+    background: #eb0096; /* Zumba Pink Button */
     color: white; 
     border: none; 
     border-radius: 8px; 
@@ -79,8 +79,8 @@ button {
     cursor: pointer; 
 }
 
-button:hover { background: #003370; }
-button:disabled { background: #cbd5e1; cursor: not-allowed; }
+button:hover { background: #c2007d; }
+button:disabled { background: #f09bc7; cursor: not-allowed; }
 
 .spinner {
     width: 18px; height: 18px;
@@ -92,6 +92,6 @@ button:disabled { background: #cbd5e1; cursor: not-allowed; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-#result { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; line-height: 1.5; }
+#result { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; line-height: 1.5; font-weight: 500;}
 .valid { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
 .invalid { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
