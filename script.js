@@ -3,65 +3,45 @@ const btnText = document.getElementById('btnText');
 const loader = document.getElementById('loader');
 const resultDiv = document.getElementById('result');
 
+// Your Bulgarian Company Info (Not required for this API, but kept for consistency)
 const REQ_COUNTRY = "BG";
 const REQ_NUMBER = "206792586";
 
-// Error Translation Dictionary
-const VIES_ERRORS = {
-    'MS_MAX_CONCURRENT_REQ': 'The country database is currently overloaded. Please wait 10 seconds and try again.',
-    'MS_UNAVAILABLE': 'The selected country database is temporarily offline for maintenance.',
-    'SERVICE_UNAVAILABLE': 'The VIES gateway is busy. Please try again in a moment.',
-    'TIMEOUT': 'The connection timed out. The EU servers are responding slowly today.',
-    'INVALID_INPUT': 'The VAT number format is incorrect for this country.'
-};
+// ApyHub Authentication
+const APY_TOKEN = "APY0VusXC3QXne41vyiMEWcZd6GcUv6BFgWizYslDAbo5J65J2bxrdK7V4Yt1J3sw0jbj";
+const API_URL = "https://api.apyhub.com/validate/vat";
 
-async function fetchWithTimeout(url, options, timeout = 30000) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
+/**
+ * Validates VAT using the ApyHub API.
+ * This API is more stable but only returns a boolean (true/false).
+ */
+async function validateWithApyHub(fullVat) {
     try {
-        const response = await fetch(url, { ...options, signal: controller.signal });
-        clearTimeout(timer);
-        return response;
-    } catch (e) {
-        clearTimeout(timer);
-        throw e;
-    }
-}
+        // We show Attempt 1 as requested, though ApyHub usually works on first try
+        if (btnText) btnText.innerText = `Syncing with VIES (attempt 1)...`;
 
-async function fetchWithRetry(country, number) {
-    const apiUrl = `https://ec.europa.eu/taxation_customs/vies/rest-api/ms/${country}/vat/${number}?requesterMs=${REQ_COUNTRY}&requesterVat=${REQ_NUMBER}&_t=${Date.now()}`;
-    
-    const proxies = [
-        (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-        (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
-    ];
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apy-token': APY_TOKEN
+            },
+            body: JSON.stringify({ vat: fullVat })
+        });
 
-    let lastError = "Connection failed";
-
-    for (let i = 0; i < proxies.length; i++) {
-        try {
-            // Update UI text to show progress
-            if (btnText) btnText.innerText = `Syncing with VIES (attempt ${i + 1})...`;
-            
-            const response = await fetchWithTimeout(proxies[i](apiUrl), { method: 'GET' }, 30000);
-            
-            if (!response.ok) continue;
-
-            const resData = await response.json();
-            const data = resData.contents ? JSON.parse(resData.contents) : resData;
-            
-            // If the API returns a technical error string instead of a valid/invalid status
-            if (data.userError && VIES_ERRORS[data.userError]) {
-                data.friendlyError = VIES_ERRORS[data.userError];
-            }
-            
-            return data;
-        } catch (err) {
-            lastError = err.name === 'AbortError' ? "Timeout" : err.message;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Server Error ${response.status}`);
         }
+
+        const result = await response.json();
+        // The API returns { "data": true/false }
+        return result.data;
+
+    } catch (err) {
+        console.error("API Error:", err);
+        throw err;
     }
-    throw new Error(lastError);
 }
 
 checkBtn.addEventListener('click', async () => {
@@ -70,10 +50,12 @@ checkBtn.addEventListener('click', async () => {
 
     if (!country) return alert("Please select a Member State.");
     
-    const cleanNumber = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
+    // Combine country code and number for ApyHub
+    const cleanNumberOnly = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
+    const fullVatCode = country + cleanNumberOnly;
     
     // VALIDATION: VAT numbers are typically between 8 and 12 digits.
-    if (!cleanNumber || cleanNumber.length < 8) {
+    if (!cleanNumberOnly || cleanNumberOnly.length < 5) {
         if (resultDiv) {
             resultDiv.style.display = 'block';
             resultDiv.className = 'invalid';
@@ -88,24 +70,23 @@ checkBtn.addEventListener('click', async () => {
     if (resultDiv) resultDiv.style.display = 'none';
 
     try {
-        const data = await fetchWithRetry(country, cleanNumber);
+        const isValid = await validateWithApyHub(fullVatCode);
+        
         if (resultDiv) {
             resultDiv.style.display = 'block';
-            if (data.isValid) {
+            if (isValid) {
                 resultDiv.className = 'valid';
-                resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>${data.name || 'Company Name Restricted'}<br>${data.address || ''}`;
+                resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>The VAT number is active and registered.<br><small>Note: ApyHub does not provide name/address details.</small>`;
             } else {
                 resultDiv.className = 'invalid';
-                // Use translated error if available, otherwise fallback to the raw error or default text
-                const displayError = data.friendlyError || data.userError || 'Number not found in EU database.';
-                resultDiv.innerHTML = `<strong>✗ ATTENTION</strong><br>${displayError}`;
+                resultDiv.innerHTML = `<strong>✗ ATTENTION</strong><br>This VAT number is not found or is currently inactive.`;
             }
         }
     } catch (e) {
         if (resultDiv) {
             resultDiv.style.display = 'block';
             resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>Server Busy:</strong> The VIES system is currently overloaded. Please try again in 1 minute.`;
+            resultDiv.innerHTML = `<strong>Server Busy:</strong> The validation service is currently unresponsive. Please try again in 1 minute.`;
         }
     } finally {
         checkBtn.disabled = false;
