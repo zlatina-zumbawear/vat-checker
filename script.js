@@ -1,17 +1,24 @@
 const checkBtn = document.getElementById('checkBtn');
 const resultDiv = document.getElementById('result');
 
-// Your Bulgarian Company Info
 const REQ_COUNTRY = "BG";
 const REQ_NUMBER = "206792586";
 
-/**
- * Tries multiple bridges to reach the EU VIES server.
- * Includes a timestamp to prevent the browser from "instantly" 
- * returning a cached timeout error.
- */
+async function fetchWithTimeout(url, options, timeout = 30000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+}
+
 async function fetchWithRetry(country, number) {
-    // Adding Date.now() makes the URL unique so the browser CANNOT cache the failure
+    // Timestamp (_t) kills the "instant 408" cache issue
     const apiUrl = `https://ec.europa.eu/taxation_customs/vies/rest-api/ms/${country}/vat/${number}?requesterMs=${REQ_COUNTRY}&requesterVat=${REQ_NUMBER}&_t=${Date.now()}`;
     
     const proxies = [
@@ -20,42 +27,49 @@ async function fetchWithRetry(country, number) {
         (url) => `https://thingproxy.freeboard.io/fetch/${url}`
     ];
 
+    let lastError = "";
+
     for (let i = 0; i < proxies.length; i++) {
         try {
             const proxyUrl = proxies[i](apiUrl);
-            console.log(`Connection attempt ${i + 1} of ${proxies.length}...`);
+            console.log(`Bridge ${i + 1}: Waiting up to 30s...`);
             
-            const response = await fetch(proxyUrl);
-            if (!response.ok) continue;
+            // We force a 30s wait here
+            const response = await fetchWithTimeout(proxyUrl, { method: 'GET' }, 30000);
+            
+            if (!response.ok) {
+                lastError = `Proxy ${i+1} returned ${response.status}`;
+                continue;
+            }
 
-            const rawData = await response.json();
-            
-            // Handle different proxy response formats
-            const data = rawData.contents ? JSON.parse(rawData.contents) : rawData;
+            const wrapper = await response.json();
+            const data = wrapper.contents ? JSON.parse(wrapper.contents) : wrapper;
             
             return data;
         } catch (err) {
-            console.warn(`Bridge ${i + 1} failed, trying next...`);
+            if (err.name === 'AbortError') {
+                console.warn(`Bridge ${i + 1} timed out after 30s.`);
+            } else {
+                console.warn(`Bridge ${i + 1} failed: ${err.message}`);
+            }
+            lastError = err.message;
         }
     }
-    throw new Error("All connection bridges are timed out. This usually means the EU VIES service is down for maintenance.");
+    throw new Error(`All bridges failed. Last error: ${lastError}`);
 }
 
 checkBtn.addEventListener('click', async () => {
     const country = document.getElementById('country').value;
     const inputNumber = document.getElementById('vatNumber').value.trim();
+
+    if (!country) return alert("Please select a country first.");
     
-    // Clean the number: remove spaces, dots, and the country prefix if typed
     const cleanNumber = inputNumber.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
 
-    if (!cleanNumber) {
-        alert("Please enter a VAT number.");
-        return;
-    }
+    if (!cleanNumber) return alert("Please enter a VAT number.");
 
-    // UI Feedback
     checkBtn.disabled = true;
-    checkBtn.innerText = "Connecting to EU Servers...";
+    checkBtn.innerText = "Connecting (Waiting up to 30s)...";
     resultDiv.style.display = 'none';
 
     try {
@@ -64,20 +78,15 @@ checkBtn.addEventListener('click', async () => {
         resultDiv.style.display = 'block';
         if (data.isValid) {
             resultDiv.className = 'valid';
-            resultDiv.innerHTML = `
-                <div style="font-size: 1.1em; margin-bottom: 5px;"><strong>✓ VALID VAT NUMBER</strong></div>
-                <strong>Name:</strong> ${data.name || 'Not Disclosed (Privacy)'}<br>
-                <strong>Address:</strong> ${data.address ? data.address.replace(/\n/g, ', ') : 'Not Disclosed'}<br>
-                <small style="display:block; margin-top:10px; color:#666;">Request ID: ${data.requestIdentifier || 'Verified'}</small>
-            `;
+            resultDiv.innerHTML = `<strong>✓ VALID</strong><br>Name: ${data.name || 'N/A'}<br>Address: ${data.address || 'N/A'}`;
         } else {
             resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'The number is not active or formatted incorrectly.'}`;
+            resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'Not found in EU database.'}`;
         }
     } catch (error) {
         resultDiv.style.display = 'block';
         resultDiv.className = 'invalid';
-        resultDiv.innerHTML = `<strong>Connection Error:</strong> ${error.message}`;
+        resultDiv.innerHTML = `<strong>Connection Error:</strong> ${error.message}. <br><br><small>VIES might be down for maintenance or proxies are blocked.</small>`;
     } finally {
         checkBtn.disabled = false;
         checkBtn.innerText = "Verify VAT Number";
