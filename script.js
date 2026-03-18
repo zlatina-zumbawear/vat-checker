@@ -7,35 +7,36 @@ const resultDiv = document.getElementById('result');
 const REQ_COUNTRY = "BG";
 const REQ_NUMBER = "206792586";
 
-// ApyHub Authentication - Updated with your verified token from PowerShell
+// ApyHub Authentication
 const APY_TOKEN = "APY0VusXC3QXne41vyimEWcZd6GcUV6BFgWizYsldAbo5J65J2bxrdK7V4Yt1J3swOjbj";
 const API_URL = "https://api.apyhub.com/validate/vat";
 
 /**
  * Validates VAT using the ApyHub API.
- * This API is stable and handles VIES connections on its own backend.
  */
 async function validateWithApyHub(fullVat) {
     try {
-        // Show progress to the user
         if (btnText) btnText.innerText = `Syncing with VIES (attempt 1)...`;
+
+        // Debugging: This helps you see if the token is correct in the console
+        console.log("Sending request with token:", APY_TOKEN);
 
         const response = await fetch(API_URL, {
             method: 'POST',
+            mode: 'cors', // Explicitly ask for CORS mode
             headers: {
                 'Content-Type': 'application/json',
-                'apy-token': APY_TOKEN
+                'apy-token': APY_TOKEN.trim() 
             },
-            body: JSON.stringify({ vat: fullVat })
+            body: JSON.stringify({ "vat": fullVat })
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API Error: ${response.status}`);
+            // If we get a 401, it will show here
+            throw new Error(`API Response: ${response.status}`);
         }
 
         const result = await response.json();
-        // The API returns { "data": true/false }
         return result.data;
 
     } catch (err) {
@@ -50,11 +51,10 @@ checkBtn.addEventListener('click', async () => {
 
     if (!country) return alert("Please select a Member State.");
     
-    // Combine country code and number for ApyHub (e.g., DE + 451349780)
+    // Combine country code and number for ApyHub
     const cleanNumberOnly = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
     const fullVatCode = country + cleanNumberOnly;
     
-    // Basic length check
     if (!cleanNumberOnly || cleanNumberOnly.length < 5) {
         if (resultDiv) {
             resultDiv.style.display = 'block';
@@ -64,7 +64,6 @@ checkBtn.addEventListener('click', async () => {
         return;
     }
 
-    // UI State: Loading
     checkBtn.disabled = true;
     if (loader) loader.style.display = 'block';
     if (resultDiv) resultDiv.style.display = 'none';
@@ -86,7 +85,8 @@ checkBtn.addEventListener('click', async () => {
         if (resultDiv) {
             resultDiv.style.display = 'block';
             resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>Connection Busy:</strong> The VIES system is currently unresponsive. Please try again in 1 minute.`;
+            // Show the actual error message so we can debug it
+            resultDiv.innerHTML = `<strong>Status:</strong> ${e.message}. Please check API credentials.`;
         }
     } finally {
         checkBtn.disabled = false;
