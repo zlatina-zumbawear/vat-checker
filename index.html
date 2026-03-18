@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIES VAT Verification</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>EU VIES Verification</h2>
+    
+    <label for="country">Member State / Northern Ireland *</label>
+    <select id="country">
+        <option value="DE">DE - Germany</option>
+        <option value="EE">EE - Estonia (Test Mode)</option>
+        <option value="AT">AT - Austria</option>
+        <option value="BE">BE - Belgium</option>
+        <option value="FR">FR - France</option>
+        <option value="BG">BG - Bulgaria</option>
+        <option value="ES">ES - Spain</option>
+    </select>
+
+    <label for="vatNumber">VAT Number *</label>
+    <input type="text" id="vatNumber" placeholder="e.g. 100000001">
+
+    <hr>
+
+    <label>Requester Member State</label>
+    <input type="text" value="BG - Bulgaria" class="readonly-box" readonly>
+
+    <label>Requester VAT Number</label>
+    <input type="text" value="206792586" class="readonly-box" readonly>
+
+    <button id="checkBtn">Verify VAT Number</button>
+
+    <div id="result"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
