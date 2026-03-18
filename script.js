@@ -32,7 +32,7 @@ async function fetchWithRetry(country, number) {
 
     for (let i = 0; i < proxies.length; i++) {
         try {
-            if (btnText) btnText.innerText = `Bridge ${i+1}...`;
+            if (btnText) btnText.innerText = `Syncing with VIES (attempt ${i+1})...`;
             const response = await fetchWithTimeout(proxies[i](apiUrl), { method: 'GET' }, 30000);
             
             if (!response.ok) continue;
@@ -50,14 +50,25 @@ checkBtn.addEventListener('click', async () => {
     const country = document.getElementById('country').value;
     const vatInput = document.getElementById('vatNumber').value.trim();
 
-    if (!country) return alert("Select a country.");
+    if (!country) return alert("Please select a Member State.");
+    
     const cleanNumber = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
-    if (!cleanNumber) return alert("Enter VAT number.");
+    
+    // VALIDATION: VAT numbers are typically between 8 and 12 digits.
+    // If it's under 8, it's definitely incorrect.
+    if (!cleanNumber || cleanNumber.length < 8) {
+        if (resultDiv) {
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'invalid';
+            resultDiv.innerHTML = `<strong>✗ INVALID FORMAT</strong><br>The VAT number is too short. Please check the digits and try again.`;
+        }
+        return;
+    }
 
     // UI State
     checkBtn.disabled = true;
     if (loader) loader.style.display = 'block';
-    if (btnText) btnText.innerText = "Verifying...";
+    if (btnText) btnText.innerText = "Syncing with VIES...";
     if (resultDiv) resultDiv.style.display = 'none';
 
     try {
@@ -66,17 +77,17 @@ checkBtn.addEventListener('click', async () => {
             resultDiv.style.display = 'block';
             if (data.isValid) {
                 resultDiv.className = 'valid';
-                resultDiv.innerHTML = `<strong>✓ VALID</strong><br>${data.name || 'Private'}<br>${data.address || ''}`;
+                resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>${data.name || 'Company Name Restricted'}<br>${data.address || ''}`;
             } else {
                 resultDiv.className = 'invalid';
-                resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'Not found.'}`;
+                resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'Number not found in EU database.'}`;
             }
         }
     } catch (e) {
         if (resultDiv) {
             resultDiv.style.display = 'block';
             resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>Busy:</strong> EU server didn't respond. Try again in 1 min.`;
+            resultDiv.innerHTML = `<strong>Busy:</strong> The VIES system is currently overloaded. Please try again in 1 minute.`;
         }
     } finally {
         checkBtn.disabled = false;
