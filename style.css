@@ -46,7 +46,7 @@ label {
     color: #64748b; 
 }
 
-/* Editable textboxes color set to Deep Purple */
+/* Updated Editable textboxes: Matching the style of the requester info field */
 input, .modern-select { 
     width: 100%; 
     padding: 14px 16px; 
@@ -55,8 +55,20 @@ input, .modern-select {
     font-size: 16px; 
     box-sizing: border-box; 
     display: block;
-    color: #481687; 
     background-color: white;
+
+    /* Typography Match */
+    color: #475569;             /* Same gray-blue as requester info */
+    font-weight: 500;           /* Clean medium weight, not bold */
+    text-transform: uppercase;  /* Force all input to be capitalized */
+    letter-spacing: 0.5px;      /* Sharp, professional spacing */
+}
+
+/* Ensure the placeholder doesn't look like actual typed text */
+input::placeholder {
+    text-transform: none; 
+    opacity: 0.5;
+    font-weight: 400;
 }
 
 .modern-select {
@@ -67,7 +79,11 @@ input, .modern-select {
     background-size: 16px;
 }
 
-input:focus, .modern-select:focus { border-color: #eb0096; outline: none; box-shadow: 0 0 0 3px rgba(235, 0, 150, 0.1); }
+input:focus, .modern-select:focus { 
+    border-color: #eb0096; 
+    outline: none; 
+    box-shadow: 0 0 0 3px rgba(235, 0, 150, 0.1); 
+}
 
 hr { border: 0; border-top: 1px solid #f1f5f9; margin: 25px 0; }
 
@@ -112,6 +128,14 @@ button:disabled { background: #f09bc7; cursor: not-allowed; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-#result { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; line-height: 1.5; font-weight: 600;}
+#result { 
+    margin-top: 25px; 
+    padding: 15px; 
+    border-radius: 8px; 
+    display: none; 
+    line-height: 1.5; 
+    font-weight: 600;
+}
+
 .valid { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
 .invalid { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
