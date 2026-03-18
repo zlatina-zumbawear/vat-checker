@@ -1,49 +1,43 @@
 const checkBtn = document.getElementById('checkBtn');
 const resultDiv = document.getElementById('result');
 
-// Your company info (The Requester)
 const REQ_COUNTRY = "BG";
 const REQ_NUMBER = "206792586";
 
-/**
- * Tries multiple proxies to find one that works.
- * This bypasses the 522/403 errors by rotating the "bridge".
- */
 async function fetchWithRetry(country, number) {
     const apiUrl = `https://ec.europa.eu/taxation_customs/vies/rest-api/ms/${country}/vat/${number}?requesterMs=${REQ_COUNTRY}&requesterVat=${REQ_NUMBER}`;
     
+    // We are trying more direct proxies this time
     const proxies = [
-        (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        (url) => `https://proxy.cors.sh/${url}`, // Often more stable
         (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
+        (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`
     ];
 
     for (let i = 0; i < proxies.length; i++) {
         try {
             const proxyUrl = proxies[i](apiUrl);
-            console.log(`Trying Proxy ${i + 1}...`);
+            console.log(`Attempting Proxy ${i + 1}...`);
             
-            const response = await fetch(proxyUrl, { method: 'GET' });
+            const response = await fetch(proxyUrl);
+            
             if (!response.ok) continue;
 
             const rawData = await response.json();
-            
-            // AllOrigins wraps the data in a "contents" string, others don't.
+            // Handle AllOrigins wrapper vs direct JSON
             const data = rawData.contents ? JSON.parse(rawData.contents) : rawData;
             
             return data;
         } catch (err) {
-            console.warn(`Proxy ${i + 1} failed, trying next...`);
+            console.warn(`Proxy ${i + 1} failed.`);
         }
     }
-    throw new Error("All proxy servers are currently timed out. VIES might be under maintenance.");
+    throw new Error("VIES is not responding. This usually means the EU server is down for maintenance or all free proxies are currently blocked.");
 }
 
 checkBtn.addEventListener('click', async () => {
     const country = document.getElementById('country').value;
     const inputNumber = document.getElementById('vatNumber').value.trim();
-    
-    // Clean input: remove "DE", spaces, or dots
     const cleanNumber = inputNumber.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
 
     if (!cleanNumber) {
@@ -51,9 +45,8 @@ checkBtn.addEventListener('click', async () => {
         return;
     }
 
-    // UI Updates
     checkBtn.disabled = true;
-    checkBtn.innerText = "Verifying (Trying Bridges)...";
+    checkBtn.innerText = "Verifying...";
     resultDiv.style.display = 'none';
 
     try {
@@ -62,15 +55,10 @@ checkBtn.addEventListener('click', async () => {
         resultDiv.style.display = 'block';
         if (data.isValid) {
             resultDiv.className = 'valid';
-            resultDiv.innerHTML = `
-                <div style="font-size: 1.1em; margin-bottom: 8px;"><strong>✓ VALID VAT NUMBER</strong></div>
-                <strong>Name:</strong> ${data.name || 'Not Disclosed'}<br>
-                <strong>Address:</strong> ${data.address ? data.address.replace(/\n/g, ', ') : 'Not Disclosed'}<br>
-                <small style="margin-top:10px; display:block; color:#666;">Consultation: ${data.requestIdentifier || 'Verified'}</small>
-            `;
+            resultDiv.innerHTML = `<strong>✓ VALID</strong><br>Name: ${data.name || 'N/A'}<br>Address: ${data.address || 'N/A'}`;
         } else {
             resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'The number is not active or correctly formatted.'}`;
+            resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'Not found.'}`;
         }
     } catch (error) {
         resultDiv.style.display = 'block';
