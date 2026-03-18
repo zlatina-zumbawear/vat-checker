@@ -6,7 +6,6 @@ const resultDiv = document.getElementById('result');
 const REQ_COUNTRY = "BG";
 const REQ_NUMBER = "206792586";
 
-// Error Translation Dictionary
 const VIES_ERRORS = {
     'MS_MAX_CONCURRENT_REQ': 'The country database is currently overloaded. Please wait 10 seconds and try again.',
     'MS_UNAVAILABLE': 'The selected country database is temporarily offline for maintenance.',
@@ -41,7 +40,9 @@ async function fetchWithRetry(country, number) {
 
     for (let i = 0; i < proxies.length; i++) {
         try {
-            if (btnText) btnText.innerText = `Syncing with VIES (attempt ${i+1})...`;
+            // Update UI text to show progress
+            if (btnText) btnText.innerText = `Syncing (Bridge ${i + 1})...`;
+            
             const response = await fetchWithTimeout(proxies[i](apiUrl), { method: 'GET' }, 30000);
             
             if (!response.ok) continue;
@@ -49,7 +50,6 @@ async function fetchWithRetry(country, number) {
             const resData = await response.json();
             const data = resData.contents ? JSON.parse(resData.contents) : resData;
             
-            // If the API returns a technical error string instead of a valid/invalid status
             if (data.userError && VIES_ERRORS[data.userError]) {
                 data.friendlyError = VIES_ERRORS[data.userError];
             }
@@ -81,7 +81,6 @@ checkBtn.addEventListener('click', async () => {
 
     checkBtn.disabled = true;
     if (loader) loader.style.display = 'block';
-    if (btnText) btnText.innerText = "Syncing with VIES...";
     if (resultDiv) resultDiv.style.display = 'none';
 
     try {
@@ -93,7 +92,6 @@ checkBtn.addEventListener('click', async () => {
                 resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>${data.name || 'Company Name Restricted'}<br>${data.address || ''}`;
             } else {
                 resultDiv.className = 'invalid';
-                // Use translated error if available, otherwise fallback to the raw error or default text
                 const displayError = data.friendlyError || data.userError || 'Number not found in EU database.';
                 resultDiv.innerHTML = `<strong>✗ ATTENTION</strong><br>${displayError}`;
             }
