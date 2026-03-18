@@ -8,7 +8,7 @@ const REQ_COUNTRY = "BG";
 const REQ_NUMBER = "206792586";
 
 // ApyHub Authentication
-const APY_TOKEN = "APY0VusXC3QXne41vyimEWcZd6GcUV6BFgWizYsldAbo5J65J2bxrdK7V4Yt1J3swOjbj";
+const APY_TOKEN = "APY0VusXC3QXne41vyimEWcZd6GcUV6BFgWizYsldAbo5J65J2bxrdK7Y4Yt1J3swOjbj";
 const API_URL = "https://api.apyhub.com/validate/vat";
 
 /**
@@ -18,21 +18,20 @@ async function validateWithApyHub(fullVat) {
     try {
         if (btnText) btnText.innerText = `Syncing with VIES (attempt 1)...`;
 
-        // Debugging: This helps you see if the token is correct in the console
-        console.log("Sending request with token:", APY_TOKEN);
+        // We add a timestamp to the URL to prevent the browser from using a cached "401" result
+        const timestampedUrl = `${API_URL}?t=${Date.now()}`;
 
-        const response = await fetch(API_URL, {
+        const response = await fetch(timestampedUrl, {
             method: 'POST',
-            mode: 'cors', // Explicitly ask for CORS mode
             headers: {
-                'Content-Type': 'application/json',
-                'apy-token': APY_TOKEN.trim() 
+                'apy-token': APY_TOKEN,
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ "vat": fullVat })
+            body: JSON.stringify({ vat: fullVat })
         });
 
         if (!response.ok) {
-            // If we get a 401, it will show here
+            // Throwing the specific status helps us identify if it's still 401
             throw new Error(`API Response: ${response.status}`);
         }
 
@@ -55,6 +54,7 @@ checkBtn.addEventListener('click', async () => {
     const cleanNumberOnly = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
     const fullVatCode = country + cleanNumberOnly;
     
+    // Basic length check
     if (!cleanNumberOnly || cleanNumberOnly.length < 5) {
         if (resultDiv) {
             resultDiv.style.display = 'block';
@@ -64,6 +64,7 @@ checkBtn.addEventListener('click', async () => {
         return;
     }
 
+    // UI State: Loading
     checkBtn.disabled = true;
     if (loader) loader.style.display = 'block';
     if (resultDiv) resultDiv.style.display = 'none';
@@ -85,8 +86,7 @@ checkBtn.addEventListener('click', async () => {
         if (resultDiv) {
             resultDiv.style.display = 'block';
             resultDiv.className = 'invalid';
-            // Show the actual error message so we can debug it
-            resultDiv.innerHTML = `<strong>Status:</strong> ${e.message}. Please check API credentials.`;
+            resultDiv.innerHTML = `<strong>Status:</strong> ${e.message}. The service is busy, please retry in 10s.`;
         }
     } finally {
         checkBtn.disabled = false;
