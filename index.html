@@ -3,69 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIES VAT Verification</title>
+    <title>Zumba® Wear Bulgaria - VAT Checker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
-    <h2>EU VIES Verification</h2>
-    
-    <div class="form-group">
-        <label for="country">Member State *</label>
-        <select id="country" class="modern-select">
-            <option value="" disabled selected>Choose a country...</option>
-            <option value="AT">AT - Austria</option>
-            <option value="BE">BE - Belgium</option>
-            <option value="BG">BG - Bulgaria</option>
-            <option value="CY">CY - Cyprus</option>
-            <option value="CZ">CZ - Czech Republic</option>
-            <option value="DE">DE - Germany</option>
-            <option value="DK">DK - Denmark</option>
-            <option value="EE">EE - Estonia</option>
-            <option value="EL">EL - Greece</option>
-            <option value="ES">ES - Spain</option>
-            <option value="FI">FI - Finland</option>
-            <option value="FR">FR - France</option>
-            <option value="HR">HR - Croatia</option>
-            <option value="HU">HU - Hungary</option>
-            <option value="IE">IE - Ireland</option>
-            <option value="IT">IT - Italy</option>
-            <option value="LT">LT - Lithuania</option>
-            <option value="LU">LU - Luxembourg</option>
-            <option value="LV">LV - Latvia</option>
-            <option value="MT">MT - Malta</option>
-            <option value="NL">NL - Netherlands</option>
-            <option value="PL">PL - Poland</option>
-            <option value="PT">PT - Portugal</option>
-            <option value="RO">RO - Romania</option>
-            <option value="SE">SE - Sweden</option>
-            <option value="SI">SI - Slovenia</option>
-            <option value="SK">SK - Slovakia</option>
-            <option value="XI">XI - Northern Ireland</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="vatNumber">VAT Number *</label>
-        <input type="text" id="vatNumber" placeholder="e.g. 123456789">
-    </div>
-
-    <hr>
-
-    <div class="form-group">
-        <label>Requester Info (Zumba® Wear Bulgaria)</label>
-        <div class="readonly-flex">
-            <span>BG | 206792586</span>
+<div class="full-screen-bg">
+    <div class="container">
+        <h2>EU VIES Verification</h2>
+        
+        <div class="form-group">
+            <label for="country">Member State *</label>
+            <select id="country" class="modern-select">
+                <option value="" disabled selected>Choose a country...</option>
+                <option value="AT">AT - Austria</option>
+                <option value="BE">BE - Belgium</option>
+                <option value="BG">BG - Bulgaria</option>
+                <option value="CY">CY - Cyprus</option>
+                <option value="CZ">CZ - Czech Republic</option>
+                <option value="DE">DE - Germany</option>
+                <option value="DK">DK - Denmark</option>
+                <option value="EE">EE - Estonia</option>
+                <option value="EL">EL - Greece</option>
+                <option value="ES">ES - Spain</option>
+                <option value="FI">FI - Finland</option>
+                <option value="FR">FR - France</option>
+                <option value="HR">HR - Croatia</option>
+                <option value="HU">HU - Hungary</option>
+                <option value="IE">IE - Ireland</option>
+                <option value="IT">IT - Italy</option>
+                <option value="LT">LT - Lithuania</option>
+                <option value="LU">LU - Luxembourg</option>
+                <option value="LV">LV - Latvia</option>
+                <option value="MT">MT - Malta</option>
+                <option value="NL">NL - Netherlands</option>
+                <option value="PL">PL - Poland</option>
+                <option value="PT">PT - Portugal</option>
+                <option value="RO">RO - Romania</option>
+                <option value="SE">SE - Sweden</option>
+                <option value="SI">SI - Slovenia</option>
+                <option value="SK">SK - Slovakia</option>
+                <option value="XI">XI - Northern Ireland</option>
+            </select>
         </div>
+
+        <div class="form-group">
+            <label for="vatNumber">VAT Number *</label>
+            <input type="text" id="vatNumber" placeholder="e.g. 123456789">
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label>Requester Info (Zumba® Wear Bulgaria)</label>
+            <div class="readonly-flex">
+                <span>BG | 206792586</span>
+            </div>
+        </div>
+
+        <button id="checkBtn">
+            <span id="btnText">Verify VAT Number</span>
+            <div id="loader" class="spinner" style="display: none;"></div>
+        </button>
+
+        <div id="result"></div>
     </div>
-
-    <button id="checkBtn">
-        <span id="btnText">Verify VAT Number</span>
-        <div id="loader" class="spinner" style="display: none;"></div>
-    </button>
-
-    <div id="result"></div>
 </div>
 
 <script src="script.js"></script>
