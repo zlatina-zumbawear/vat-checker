@@ -8,14 +8,14 @@ const REQ_NUMBER = "206792586";
 
 async function fetchWithTimeout(url, options, timeout = 30000) {
     const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
+    const timer = setTimeout(() => controller.abort(), timeout);
     try {
         const response = await fetch(url, { ...options, signal: controller.signal });
-        clearTimeout(id);
+        clearTimeout(timer);
         return response;
-    } catch (error) {
-        clearTimeout(id);
-        throw error;
+    } catch (e) {
+        clearTimeout(timer);
+        throw e;
     }
 }
 
@@ -28,19 +28,17 @@ async function fetchWithRetry(country, number) {
         (url) => `https://thingproxy.freeboard.io/fetch/${url}`
     ];
 
-    let lastError = "";
+    let lastError = "Connection failed";
 
     for (let i = 0; i < proxies.length; i++) {
         try {
-            const proxyUrl = proxies[i](apiUrl);
-            btnText.innerText = `Attempting connection ${i+1}...`;
+            if (btnText) btnText.innerText = `Bridge ${i+1}...`;
+            const response = await fetchWithTimeout(proxies[i](apiUrl), { method: 'GET' }, 30000);
             
-            const response = await fetchWithTimeout(proxyUrl, { method: 'GET' }, 30000);
             if (!response.ok) continue;
 
-            const wrapper = await response.json();
-            const data = wrapper.contents ? JSON.parse(wrapper.contents) : wrapper;
-            return data;
+            const resData = await response.json();
+            return resData.contents ? JSON.parse(resData.contents) : resData;
         } catch (err) {
             lastError = err.name === 'AbortError' ? "Timeout" : err.message;
         }
@@ -50,35 +48,39 @@ async function fetchWithRetry(country, number) {
 
 checkBtn.addEventListener('click', async () => {
     const country = document.getElementById('country').value;
-    const inputNumber = document.getElementById('vatNumber').value.trim();
+    const vatInput = document.getElementById('vatNumber').value.trim();
 
-    if (!country) return alert("Please select a country.");
-    const cleanNumber = inputNumber.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
-    if (!cleanNumber) return alert("Please enter a VAT number.");
+    if (!country) return alert("Select a country.");
+    const cleanNumber = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
+    if (!cleanNumber) return alert("Enter VAT number.");
 
-    // Set Loading State
+    // UI State
     checkBtn.disabled = true;
-    loader.style.display = 'block';
-    btnText.innerText = "Verifying...";
-    resultDiv.style.display = 'none';
+    if (loader) loader.style.display = 'block';
+    if (btnText) btnText.innerText = "Verifying...";
+    if (resultDiv) resultDiv.style.display = 'none';
 
     try {
         const data = await fetchWithRetry(country, cleanNumber);
-        resultDiv.style.display = 'block';
-        if (data.isValid) {
-            resultDiv.className = 'valid';
-            resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>${data.name || 'Company Name Restricted'}<br>${data.address || ''}`;
-        } else {
-            resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'Not found.'}`;
+        if (resultDiv) {
+            resultDiv.style.display = 'block';
+            if (data.isValid) {
+                resultDiv.className = 'valid';
+                resultDiv.innerHTML = `<strong>✓ VALID</strong><br>${data.name || 'Private'}<br>${data.address || ''}`;
+            } else {
+                resultDiv.className = 'invalid';
+                resultDiv.innerHTML = `<strong>✗ INVALID</strong><br>${data.userError || 'Not found.'}`;
+            }
         }
-    } catch (error) {
-        resultDiv.style.display = 'block';
-        resultDiv.className = 'invalid';
-        resultDiv.innerHTML = `<strong>Server Busy:</strong> The EU database is currently timing out. Please try again in a few minutes.`;
+    } catch (e) {
+        if (resultDiv) {
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'invalid';
+            resultDiv.innerHTML = `<strong>Busy:</strong> EU server didn't respond. Try again in 1 min.`;
+        }
     } finally {
         checkBtn.disabled = false;
-        loader.style.display = 'none';
-        btnText.innerText = "Verify VAT Number";
+        if (loader) loader.style.display = 'none';
+        if (btnText) btnText.innerText = "Verify VAT Number";
     }
 });
