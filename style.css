@@ -22,8 +22,8 @@ body {
 .container { 
     width: 90%;
     max-width: 440px; 
-    background: rgba(255, 255, 255, 0.92); 
-    backdrop-filter: blur(10px); 
+    background: rgba(255, 255, 255, 0.87);
+    backdrop-filter: blur(4px);
     padding: 35px; 
     border-radius: 16px; 
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
@@ -46,7 +46,7 @@ body {
 }
 
 .vies-text {
-    color: #6b75ff; /* The specific blue from screenshot */
+    color: #575757; /* The specific blue from screenshot */
 }
 
 .zumba {
