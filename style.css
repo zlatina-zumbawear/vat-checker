@@ -5,7 +5,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Full-Screen Background Wrapper using your Imgur Link */
+/* Full-Screen Background Wrapper */
 .full-screen-bg {
     width: 100vw;
     height: 100vh;
@@ -23,7 +23,7 @@ body {
     width: 90%;
     max-width: 440px; 
     background: rgba(255, 255, 255, 0.92); 
-    backdrop-filter: blur(10px); /* Modern glass effect */
+    backdrop-filter: blur(10px); 
     padding: 35px; 
     border-radius: 16px; 
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
@@ -32,7 +32,32 @@ body {
     z-index: 10;
 }
 
-h2 { color: #eb0096; text-align: center; margin-bottom: 25px; font-size: 1.5rem; font-weight: 800; }
+/* --- ZUMBA BRANDING STYLES --- */
+.vies-title { 
+    color: #eb0096; 
+    text-align: center; 
+    margin-bottom: 25px; 
+    font-size: 1.4rem; 
+    font-weight: 800;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.zumba {
+    display: inline-flex;
+    letter-spacing: -1px;
+}
+
+/* Individual Letter Colors from Image */
+.zumba .z { color: #f7a01a; } /* Orange/Yellow */
+.zumba .u { color: #4dbf70; } /* Green */
+.zumba .m { color: #4cb3dc; } /* Light Blue */
+.zumba .b { color: #eb0096; } /* Pink */
+.zumba .a { color: #f07ab8; } /* Light Pink */
+/* ---------------------------- */
 
 .form-group { margin-bottom: 20px; text-align: left; }
 
@@ -46,7 +71,6 @@ label {
     color: #64748b; 
 }
 
-/* Updated Editable textboxes: Matching the style of the requester info field */
 input, .modern-select { 
     width: 100%; 
     padding: 14px 16px; 
@@ -56,15 +80,12 @@ input, .modern-select {
     box-sizing: border-box; 
     display: block;
     background-color: white;
-
-    /* Typography Match */
-    color: #475569;             /* Same gray-blue as requester info */
-    font-weight: 500;           /* Clean medium weight, not bold */
-    text-transform: uppercase;  /* Force all input to be capitalized */
-    letter-spacing: 0.5px;      /* Sharp, professional spacing */
+    color: #475569; 
+    font-weight: 500; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
 }
 
-/* Ensure the placeholder doesn't look like actual typed text */
 input::placeholder {
     text-transform: none; 
     opacity: 0.5;
