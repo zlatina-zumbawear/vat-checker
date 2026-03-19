@@ -34,7 +34,6 @@ body {
 
 /* --- ZUMBA BRANDING STYLES --- */
 .vies-title { 
-    color: #eb0096; 
     text-align: center; 
     margin-bottom: 25px; 
     font-size: 1.4rem; 
@@ -46,18 +45,21 @@ body {
     gap: 8px;
 }
 
+.vies-text {
+    color: #6b75ff; /* The specific blue from screenshot */
+}
+
 .zumba {
     display: inline-flex;
     letter-spacing: -1px;
 }
 
-/* Individual Letter Colors from Image */
-.zumba .z { color: #f7a01a; } /* Orange/Yellow */
-.zumba .u { color: #4dbf70; } /* Green */
-.zumba .m { color: #4cb3dc; } /* Light Blue */
-.zumba .b { color: #eb0096; } /* Pink */
-.zumba .a { color: #f07ab8; } /* Light Pink */
-/* ---------------------------- */
+/* Individual colors from Zumba reference */
+.zumba .z { color: #f7a01a; }
+.zumba .u { color: #4dbf70; }
+.zumba .m { color: #4cb3dc; }
+.zumba .b { color: #eb0096; }
+.zumba .a { color: #f07ab8; }
 
 .form-group { margin-bottom: 20px; text-align: left; }
 
@@ -100,7 +102,16 @@ input::placeholder {
     background-size: 16px;
 }
 
-input:focus, .modern-select:focus { 
+/* Disabled state styling */
+.modern-select:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 1; /* For consistent mobile rendering */
+    border-color: #e2e8f0;
+}
+
+input:focus, .modern-select:focus:not(:disabled) { 
     border-color: #eb0096; 
     outline: none; 
     box-shadow: 0 0 0 3px rgba(235, 0, 150, 0.1); 
