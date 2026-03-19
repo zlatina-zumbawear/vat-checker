@@ -12,14 +12,19 @@
     <div class="container">
         <h2 class="vies-title">
             <span class="zumba">
-                <span class="z">Z</span><span class="u">u</span><span class="m">m</span><span class="b">b</span><span class="a">a</span>
+                <span class="z">Z</span><span class="u">U</span><span class="m">M</span><span class="b">B</span><span class="a">A</span>
             </span> 
-            EU VIES Verification
+            <span class="vies-text">EU VIES Verification</span>
         </h2>
         
         <div class="form-group">
-            <label for="country">Member State *</label>
-            <select id="country" class="modern-select">
+            <label for="vatNumber">VAT Number *</label>
+            <input type="text" id="vatNumber" placeholder="e.g. DE451349780">
+        </div>
+
+        <div class="form-group">
+            <label for="country">Country</label>
+            <select id="country" class="modern-select" disabled>
                 <option value="" disabled selected>ID - COUNTRY</option>
                 <option value="AT">AT - Austria</option>
                 <option value="BE">BE - Belgium</option>
@@ -50,11 +55,6 @@
                 <option value="SK">SK - Slovakia</option>
                 <option value="XI">XI - Northern Ireland</option>
             </select>
-        </div>
-
-        <div class="form-group">
-            <label for="vatNumber">VAT Number *</label>
-            <input type="text" id="vatNumber" placeholder="e.g. AA123456789">
         </div>
 
         <hr>
