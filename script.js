@@ -2,6 +2,8 @@ const checkBtn = document.getElementById('checkBtn');
 const btnText = document.getElementById('btnText');
 const loader = document.getElementById('loader');
 const resultDiv = document.getElementById('result');
+const countrySelect = document.getElementById('country');
+const vatInput = document.getElementById('vatNumber');
 
 // Your Bulgarian Company Info (Kept for UI/Consistency)
 const REQ_COUNTRY = "BG";
@@ -12,13 +14,28 @@ const APY_TOKEN = "APY0VusXC3QXne41vyimEWcZd6GcUV6BFgWizYsldAbo5J65J2bxrdK7Y4Yt1
 const API_URL = "https://api.apyhub.com/validate/vat";
 
 /**
+ * SMART AUTO-SELECT LOGIC
+ * Automatically updates the dropdown if a country code is detected in the input
+ */
+vatInput.addEventListener('input', (e) => {
+    let val = e.target.value.trim().toUpperCase();
+    if (val.length >= 2) {
+        const potentialCode = val.substring(0, 2);
+        // Check if the first 2 chars match any value in our dropdown
+        const exists = Array.from(countrySelect.options).some(opt => opt.value === potentialCode);
+        if (exists) {
+            countrySelect.value = potentialCode;
+        }
+    }
+});
+
+/**
  * Validates VAT using the ApyHub API.
  */
 async function validateWithApyHub(fullVat) {
     try {
         if (btnText) btnText.innerText = `Syncing with VIES (attempt 1)...`;
 
-        // We add a timestamp to the URL to prevent the browser from using a cached "401" result
         const timestampedUrl = `${API_URL}?t=${Date.now()}`;
 
         const response = await fetch(timestampedUrl, {
@@ -31,7 +48,6 @@ async function validateWithApyHub(fullVat) {
         });
 
         if (!response.ok) {
-            // Throwing the specific status helps us identify if it's still 401
             throw new Error(`API Response: ${response.status}`);
         }
 
@@ -45,17 +61,25 @@ async function validateWithApyHub(fullVat) {
 }
 
 checkBtn.addEventListener('click', async () => {
-    const country = document.getElementById('country').value;
-    const vatInput = document.getElementById('vatNumber').value.trim();
+    const country = countrySelect.value;
+    let rawInput = vatInput.value.trim().toUpperCase();
 
     if (!country) return alert("Please select a Member State.");
     
-    // Combine country code and number for ApyHub
-    const cleanNumberOnly = vatInput.replace(/[^a-zA-Z0-9]/g, '').replace(new RegExp(`^${country}`, 'i'), '');
-    const fullVatCode = country + cleanNumberOnly;
-    
-    // Basic length check
-    if (!cleanNumberOnly || cleanNumberOnly.length < 5) {
+    // 1. Strip everything except letters and numbers
+    let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
+
+    // 2. Ensure we have a "Full VAT" (Country + Numbers)
+    // If the user didn't type the country code, add it from the dropdown
+    let fullVatCode;
+    if (cleanInput.startsWith(country)) {
+        fullVatCode = cleanInput;
+    } else {
+        fullVatCode = country + cleanInput;
+    }
+
+    // 3. Basic length check (Country code 2 + at least 5 digits)
+    if (fullVatCode.length < 7) {
         if (resultDiv) {
             resultDiv.style.display = 'block';
             resultDiv.className = 'invalid';
