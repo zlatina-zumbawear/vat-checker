@@ -5,23 +5,19 @@ const resultDiv = document.getElementById('result');
 const countrySelect = document.getElementById('country');
 const vatInput = document.getElementById('vatNumber');
 
-// Your Bulgarian Company Info (Kept for UI/Consistency)
-const REQ_COUNTRY = "BG";
-const REQ_NUMBER = "206792586";
-
 // ApyHub Authentication
 const APY_TOKEN = "APY0VusXC3QXne41vyimEWcZd6GcUV6BFgWizYsldAbo5J65J2bxrdK7Y4Yt1J3swOjbj";
 const API_URL = "https://api.apyhub.com/validate/vat";
 
 /**
- * SMART AUTO-SELECT LOGIC
- * Automatically updates the dropdown if a country code is detected in the input
+ * SMART AUTO-SELECT & FORMATTING
  */
 vatInput.addEventListener('input', (e) => {
-    let val = e.target.value.trim().toUpperCase();
+    let val = e.target.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    e.target.value = val; // Force uppercase and no symbols in the UI
+
     if (val.length >= 2) {
         const potentialCode = val.substring(0, 2);
-        // Check if the first 2 chars match any value in our dropdown
         const exists = Array.from(countrySelect.options).some(opt => opt.value === potentialCode);
         if (exists) {
             countrySelect.value = potentialCode;
@@ -30,12 +26,38 @@ vatInput.addEventListener('input', (e) => {
 });
 
 /**
- * Validates VAT using the ApyHub API.
+ * VALIDATION FUNCTION
+ * Returns { isValid: boolean, message: string }
+ */
+function validateVatFormat(input, selectedCountry) {
+    // 1. Basic cleaning
+    const cleanVat = input.replace(/[^A-Z0-9]/g, '');
+
+    // 2. Check if it starts with the selected country
+    if (!cleanVat.startsWith(selectedCountry)) {
+        return { isValid: false, message: `VAT must start with the country code: ${selectedCountry}` };
+    }
+
+    // 3. Length check (Standard 11: 2 letters + 9 numbers)
+    if (cleanVat.length !== 11) {
+        return { isValid: false, message: "VAT must be exactly 11 characters (e.g., DE123456789)" };
+    }
+
+    // 4. Pattern check: 2 Letters followed by exactly 9 Numbers
+    const regex = /^[A-Z]{2}[0-9]{9}$/;
+    if (!regex.test(cleanVat)) {
+        return { isValid: false, message: "Invalid format. Expected 2 letters followed by 9 numbers." };
+    }
+
+    return { isValid: true, fullVat: cleanVat };
+}
+
+/**
+ * API CALL
  */
 async function validateWithApyHub(fullVat) {
     try {
-        if (btnText) btnText.innerText = `Syncing with VIES (attempt 1)...`;
-
+        if (btnText) btnText.innerText = `Syncing with VIES...`;
         const timestampedUrl = `${API_URL}?t=${Date.now()}`;
 
         const response = await fetch(timestampedUrl, {
@@ -47,74 +69,54 @@ async function validateWithApyHub(fullVat) {
             body: JSON.stringify({ vat: fullVat })
         });
 
-        if (!response.ok) {
-            throw new Error(`API Response: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`API Status: ${response.status}`);
 
         const result = await response.json();
         return result.data;
-
     } catch (err) {
-        console.error("Connection Error:", err);
         throw err;
     }
 }
 
 checkBtn.addEventListener('click', async () => {
     const country = countrySelect.value;
-    let rawInput = vatInput.value.trim().toUpperCase();
+    const rawInput = vatInput.value;
 
-    if (!country) return alert("Please select a Member State.");
-    
-    // 1. Strip everything except letters and numbers
-    let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
+    if (!country) return alert("Please enter a VAT starting with a valid country code.");
 
-    // 2. Ensure we have a "Full VAT" (Country + Numbers)
-    // If the user didn't type the country code, add it from the dropdown
-    let fullVatCode;
-    if (cleanInput.startsWith(country)) {
-        fullVatCode = cleanInput;
-    } else {
-        fullVatCode = country + cleanInput;
-    }
+    // PERFORM LOCAL VALIDATION BEFORE API CALL
+    const validation = validateVatFormat(rawInput, country);
 
-    // 3. Basic length check (Country code 2 + at least 5 digits)
-    if (fullVatCode.length < 7) {
-        if (resultDiv) {
-            resultDiv.style.display = 'block';
-            resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>✗ INVALID FORMAT</strong><br>The VAT number is too short.`;
-        }
+    if (!validation.isValid) {
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'invalid';
+        resultDiv.innerHTML = `<strong>✗ FORMAT ERROR</strong><br>${validation.message}`;
         return;
     }
 
-    // UI State: Loading
+    // If we passed validation, proceed to API
     checkBtn.disabled = true;
-    if (loader) loader.style.display = 'block';
-    if (resultDiv) resultDiv.style.display = 'none';
+    loader.style.display = 'block';
+    resultDiv.style.display = 'none';
 
     try {
-        const isValid = await validateWithApyHub(fullVatCode);
+        const isRegistered = await validateWithApyHub(validation.fullVat);
         
-        if (resultDiv) {
-            resultDiv.style.display = 'block';
-            if (isValid === true) {
-                resultDiv.className = 'valid';
-                resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>This VAT number is registered and active.`;
-            } else {
-                resultDiv.className = 'invalid';
-                resultDiv.innerHTML = `<strong>✗ ATTENTION</strong><br>This VAT number is not valid or is inactive.`;
-            }
+        resultDiv.style.display = 'block';
+        if (isRegistered === true) {
+            resultDiv.className = 'valid';
+            resultDiv.innerHTML = `<strong>✓ VALID VAT</strong><br>${validation.fullVat} is active in VIES.`;
+        } else {
+            resultDiv.className = 'invalid';
+            resultDiv.innerHTML = `<strong>✗ NOT FOUND</strong><br>${validation.fullVat} is not registered or is inactive.`;
         }
     } catch (e) {
-        if (resultDiv) {
-            resultDiv.style.display = 'block';
-            resultDiv.className = 'invalid';
-            resultDiv.innerHTML = `<strong>Status:</strong> ${e.message}. The service is busy, please retry in 10s.`;
-        }
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'invalid';
+        resultDiv.innerHTML = `<strong>Status:</strong> Service busy. Please retry in 10s.`;
     } finally {
         checkBtn.disabled = false;
-        if (loader) loader.style.display = 'none';
-        if (btnText) btnText.innerText = "Verify VAT Number";
+        loader.style.display = 'none';
+        btnText.innerText = "Verify VAT Number";
     }
 });
