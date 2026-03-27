@@ -7,6 +7,7 @@ body {
 
 /* Full-Screen Background Wrapper */
 .full-screen-bg {
+    position: relative; /* Necessary for overlay positioning */
     width: 100vw;
     height: 100vh;
     background-image: url('https://i.imgur.com/kXm0GrD.jpeg'); 
@@ -19,17 +20,30 @@ body {
     align-items: center;
 }
 
+/* The New Blur Layer */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3); /* Adds a light dark tint */
+    backdrop-filter: blur(10px);           /* The blur effect */
+    -webkit-backdrop-filter: blur(10px);    /* For Safari support */
+    z-index: 1;                            /* Sits behind the container */
+}
+
 .container { 
     width: 90%;
     max-width: 440px; 
-    background: rgba(255, 255, 255, 0.87);
+    background: rgba(255, 255, 255, 0.9); /* Slightly more opaque for better contrast */
     backdrop-filter: blur(4px);
     padding: 35px; 
     border-radius: 16px; 
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
     border-top: 6px solid #eb0096; 
     position: relative;
-    z-index: 10;
+    z-index: 10; /* Ensures the form stays on top of the overlay */
 }
 
 /* --- ZUMBA BRANDING STYLES --- */
@@ -46,7 +60,7 @@ body {
 }
 
 .vies-text {
-    color: #575757; /* The specific blue from screenshot */
+    color: #575757; 
 }
 
 .zumba {
@@ -54,7 +68,6 @@ body {
     letter-spacing: -1px;
 }
 
-/* Individual colors from Zumba reference */
 .zumba .z { color: #f7a01a; }
 .zumba .u { color: #4dbf70; }
 .zumba .m { color: #4cb3dc; }
@@ -102,12 +115,11 @@ input::placeholder {
     background-size: 16px;
 }
 
-/* Disabled state styling */
 .modern-select:disabled {
     background-color: #f1f5f9;
     color: #94a3b8;
     cursor: not-allowed;
-    opacity: 1; /* For consistent mobile rendering */
+    opacity: 1;
     border-color: #e2e8f0;
 }
 
