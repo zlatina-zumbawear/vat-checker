@@ -60,10 +60,14 @@ function validateVatFormat(input) {
     //    return { isValid: false, message: "VAT must be exactly 11 characters (e.g. DE123456789)" };
   //  }
 
-    // 4. Pattern check: 2 Letters followed by 9 Numbers
-    const regex = /^[A-Z]{2}[0-9]{9}$/;
+    // 4. Pattern check: 2 Letters followed by at least 6 numbers
+    const regex = /^[A-Z]{2}[0-9]{6,}$/;
+    
     if (!regex.test(cleanVat)) {
-        return { isValid: false, message: "Invalid format. Expected 2 letters followed by 9 numbers." };
+        return {
+            isValid: false,
+            message: "Invalid format. Expected 2 letters followed by at least 6 numbers."
+        };
     }
 
     return { isValid: true, fullVat: cleanVat, country: countryCode };
