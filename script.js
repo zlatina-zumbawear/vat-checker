@@ -56,9 +56,9 @@ function validateVatFormat(input) {
     }
 
     // 3. Length check (Standard 11: 2 letters + 9 numbers)
-    if (cleanVat.length !== 11) {
-        return { isValid: false, message: "VAT must be exactly 11 characters (e.g. DE123456789)" };
-    }
+  //  if (cleanVat.length !== 11) {
+    //    return { isValid: false, message: "VAT must be exactly 11 characters (e.g. DE123456789)" };
+  //  }
 
     // 4. Pattern check: 2 Letters followed by 9 Numbers
     const regex = /^[A-Z]{2}[0-9]{9}$/;
